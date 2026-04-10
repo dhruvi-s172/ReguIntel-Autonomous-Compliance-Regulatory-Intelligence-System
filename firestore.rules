@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().role == 'admin') || 
+        (request.auth.token.email == "dhruvighodasara41@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+    
+    function isLegalOfficer() {
+      return isAuthenticated() && (
+        isAdmin() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().role in ['legal_officer', 'compliance_manager'])
+      );
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isAdmin() || isOwner(userId);
+    }
+
+    match /circulars/{circularId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isLegalOfficer();
+      allow delete: if isAdmin();
+    }
+
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow create: if isLegalOfficer();
+      allow update: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isLegalOfficer();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+  }
+}

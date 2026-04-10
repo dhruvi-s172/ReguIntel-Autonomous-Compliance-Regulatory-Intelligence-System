@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Enterprise user profile with role-based access.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "legal_officer", "compliance_manager", "viewer"] },
+        "department": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "Circular": {
+      "title": "Regulatory Circular",
+      "description": "A regulatory update from a global authority.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "source": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "url": { "type": "string", "format": "uri" },
+        "status": { "type": "string", "enum": ["New", "Analyzed", "Action Taken"] },
+        "category": { "type": "string", "enum": ["Compliance", "Penalty", "Scope", "Procedural"] },
+        "riskScore": { "type": "number" },
+        "summary": { "type": "string" },
+        "region": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Critical", "High", "Medium", "Low"] },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "source", "date", "status", "region", "priority", "lastUpdated"]
+    },
+    "ComplianceTask": {
+      "title": "Compliance Task",
+      "description": "A task assigned to a department or user based on a regulatory change.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "circularId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "assignedTo": { "type": "string" },
+        "department": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "in_progress", "completed", "overdue"] },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+      },
+      "required": ["circularId", "title", "status", "dueDate", "priority"]
+    },
+    "AuditEntry": {
+      "title": "Audit Entry",
+      "description": "Record of a specific action taken in the system.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string" },
+        "entityId": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "details": { "type": "string" }
+      },
+      "required": ["action", "userId", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile data."
+    },
+    "/circulars/{circularId}": {
+      "schema": "Circular",
+      "description": "Regulatory circulars."
+    },
+    "/tasks/{taskId}": {
+      "schema": "ComplianceTask",
+      "description": "Compliance tasks."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditEntry",
+      "description": "System audit logs."
+    }
+  }
+}
